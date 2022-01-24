@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]>      <html class="no-js"> <!--<![endif]-->
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title></title>
+    <meta name="description" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="./index.css" />
+    <script src="https://cdn.socket.io/4.4.1/socket.io.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+
+    <script src="./handlers/socket.io.js"></script>
+    <script src="./handlers/startScreenHandlers.js"></script>
+    <script src="./handlers/chatHandlers.js"></script>
+
+    <script src="./game.js"></script>
+    <script defer src="./index.js"></script>
+  </head>
+  <body>
+    <!--[if lt IE 7]>
+      <p class="browsehappy">
+        You are using an <strong>outdated</strong> browser. Please
+        <a href="#">upgrade your browser</a> to improve your experience.
+      </p>
+    <![endif]-->
+
+    <div id="page">
+      <div id="header">Simple MUD</div>
+      <div id="content"></div>
+      <div id="footer">MUD Footer</div>
+    </div>
+
+    <template id="startform-template">
+      <div id="startform">
+        <div id="startform-header">Simple MUD Start Page:</div>
+        <div>
+          Character Name:
+          <input id="startform-character-name" />
+        </div>
+
+        <button onclick="StartMenu.NewGamePressed()">New Game</button>
+
+        <div id="startform-new-container">
+          Room ID: <input id="startform-new-room-ID" />
+          <button onclick="StartMenu.CreatePressed()">Create</button>
+        </div>
+
+        <button onclick="StartMenu.JoinGamePressed()">Join Game</button>
+
+        <div id="startform-join-container">
+          Room ID: <input id="startform-join-room-ID" />
+          <button onclick="StartMenu.JoinPressed()">Join</button>
+        </div>
+      </div>
+    </template>
+
+    <template id="game-chat-ui-template">
+      <div id="game-chat-ui">
+        <div id="game-chat-ui-controls">
+          <span id="game-chat-ui-controls-title">Game Console</span>
+          <button
+            onclick="SocketIO.chatHandler.SwitchView(SocketIO.chatHandler.chatViews.All)"
+            id="game-chat-ui-controls-all-button"
+          >
+            All
+          </button>
+          <button
+            onclick="SocketIO.chatHandler.SwitchView(SocketIO.chatHandler.chatViews.Chat)"
+            id="game-chat-ui-controls-chat-button"
+          >
+            🗨
+          </button>
+          <button
+            onclick="SocketIO.chatHandler.SwitchView(SocketIO.chatHandler.chatViews.Combat)"
+            id="game-chat-ui-controls-combat-button"
+          >
+            ⚔
+          </button>
+          <button
+            onclick="SocketIO.chatHandler.SwitchView(SocketIO.chatHandler.chatViews.Info)"
+            id="game-chat-ui-controls-info-button"
+          >
+            ⓘ
+          </button>
+          <button id="game-chat-ui-controls-minimize-button">-</button>
+        </div>
+        <div id="game-chat-ui-body"></div>
+        <div id="game-chat-ui-inputs">
+          <input id="game-chat-ui-inputs-textbox" />
+          <button
+            onclick="SocketIO.chatHandler.SendMessage()"
+            id="game-chat-ui-inputs-send-button"
+          >
+            Send
+          </button>
+          <button id="game-chat-ui-inputs-clear-button">Clear</button>
+        </div>
+      </div>
+    </template>
+
+    <template id="game-chat-ui-message-template">
+      <div class="game-chat-ui-body-message-container">
+        <div class="game-chat-ui-body-message-header">{Name} Says:</div>
+        <div class="game-chat-ui-body-message-body">message</div>
+      </div>
+    </template>
+  </body>
+</html>

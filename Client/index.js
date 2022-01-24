@@ -1,0 +1,2 @@
+new StartMenu();
+SocketIO.Init();

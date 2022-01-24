@@ -1,0 +1,28 @@
+{
+  "name": "srpgs",
+  "version": "1.0.0",
+  "description": "simple multiplayer RPG server",
+  "main": "server.js",
+  "scripts": {
+    "start": "nodemon server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "TheTornadoTitan",
+    "Tatsu",
+    "Isaac",
+    "Simple",
+    "RPG",
+    "Server",
+    "NodeJS",
+    "Socket",
+    "Socket.io",
+    "IO"
+  ],
+  "author": "Isaac Hisey",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.17.2",
+    "socket.io": "^4.4.1"
+  }
+}
