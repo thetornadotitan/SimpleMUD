@@ -36,15 +36,15 @@ module.exports = (io, socket, game) => {
       game.roomGameStateMap[data.gameID] = {};
 
     if (
-      game.roomGameStateMap[data.gameID].connections === null ||
-      game.roomGameStateMap[data.gameID].connections === undefined
+      game.roomGameStateMap[data.gameID].players === null ||
+      game.roomGameStateMap[data.gameID].players === undefined
     )
-      game.roomGameStateMap[data.gameID].connections = {};
+      game.roomGameStateMap[data.gameID].players = {};
 
     for (const [key, value] of Object.entries(
-      game.roomGameStateMap[data.gameID].connections
+      game.roomGameStateMap[data.gameID].players
     )) {
-      if (value.toLowerCase() === data.charName.toLowerCase()) {
+      if (value.name.toLowerCase() === data.charName.toLowerCase()) {
         socket.emit(
           "startScreen:errorResponse",
           `Character Name Taken. Choose Another`
@@ -53,10 +53,14 @@ module.exports = (io, socket, game) => {
       }
     }
 
-    game.roomGameStateMap[data.gameID].connections[socket.id] = data.charName;
+    game.roomGameStateMap[data.gameID].players[socket.id] = {
+      name: data.charName,
+      xPos: 0,
+      yPos: 0,
+    };
 
     socket.emit("startScreen:charNameResponse", {
-      charName: data.charName,
+      gameState: game.roomGameStateMap[data.gameID],
       gameID: data.gameID,
     });
   };

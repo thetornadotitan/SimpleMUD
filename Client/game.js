@@ -33,6 +33,40 @@ class Game {
           p.rect(row * zoom, col * zoom, zoom, zoom);
         }
       }
+
+      p.fill(255);
+      p.noStroke();
+      for (const [key, value] of Object.entries(SocketIO.gameState.players)) {
+        console.log(value);
+        p.ellipse(
+          value.xPos * zoom + zoom / 2,
+          value.yPos * zoom + zoom / 2,
+          zoom
+        );
+      }
+    };
+
+    p.keyPressed = (event) => {
+      switch (event.code) {
+        case "KeyW":
+          console.log(event);
+          SocketIO.playerHandler.MoveUp(SocketIO.gameState.gameID);
+          break;
+        case "KeyA":
+          console.log(event);
+          SocketIO.playerHandler.MoveLeft(SocketIO.gameState.gameID);
+          break;
+        case "KeyS":
+          console.log(event);
+          SocketIO.playerHandler.MoveDown(SocketIO.gameState.gameID);
+          break;
+        case "KeyD":
+          console.log(event);
+          SocketIO.playerHandler.MoveRight(SocketIO.gameState.gameID);
+          break;
+        default:
+          break;
+      }
     };
 
     p.windowResized = () => {

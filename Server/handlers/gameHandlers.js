@@ -8,20 +8,24 @@ class Game {
     };
 
     this.registerChatEvents = require("./gameHandlers/chatHandlers");
+    this.registerPlayerEvents = require("./gameHandlers/playerHandlers");
   }
 
   RegisterSocketEvents(io, socket) {
     this.registerChatEvents(io, socket, this);
+    this.registerPlayerEvents(io, socket, this);
   }
 
   HandleRoomCreation(room) {
-    /*if (
+    /*
+    if (
       this.roomGameStateMap[room] === null ||
       this.roomGameStateMap[room] === undefined
     )
       this.roomGameStateMap[room] = { messages: [] };
 
-    this.roomGameStateMap[room].messages = [];*/
+    this.roomGameStateMap[room].messages = [];
+    */
   }
 
   HandleRoomDeletion(room) {

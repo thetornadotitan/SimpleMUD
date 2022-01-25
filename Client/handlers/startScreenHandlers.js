@@ -17,9 +17,21 @@ class StartScreenHandlers {
     });
 
     SocketIO.socket.on("startScreen:charNameResponse", (res) => {
+      SocketIO.gameState = {
+        gameID: res.gameID,
+        players: res.gameState.players,
+      };
+      console.log(res);
       if (StartMenu.creatingGame)
-        StartMenu.CreateGame(res.charName, res.gameID);
-      else StartMenu.JoinGame(res.charName, res.gameID);
+        StartMenu.CreateGame(
+          res.gameState.players[SocketIO.socket.id].name,
+          res.gameID
+        );
+      else
+        StartMenu.CreateGame(
+          res.gameState.players[SocketIO.socket.id].name,
+          res.gameID
+        );
     });
 
     SocketIO.socket.on("startScreen:errorResponse", (res) => {
@@ -32,6 +44,8 @@ class StartMenu {
   constructor() {
     this.maxRoomLength = 50;
     this.maxCharNameLength = 20;
+
+    document.querySelector("#content").innerHTML = "";
 
     document
       .querySelector("#content")

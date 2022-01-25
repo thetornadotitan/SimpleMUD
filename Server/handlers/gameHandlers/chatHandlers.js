@@ -32,8 +32,12 @@ module.exports = (io, socket, game) => {
       //don't emit to private room of sender
       if (room === socket.id) return;
 
+      const sender = `${
+        game.roomGameStateMap[room].players[socket.id].name
+      } Said:`;
+
       io.sockets.in(room).emit("newChatMessage", {
-        sender: game.roomGameStateMap[room].connections[socket.id],
+        sender,
         message: message,
       });
     });

@@ -28,7 +28,7 @@ class ChatHandlers {
     ) {
       SocketIO.chatHandler.#DisplayMessage(
         SocketIO.chatHandler.messageClasses.Chat,
-        `${data.sender} Said:`,
+        data.sender,
         data.message
       );
     }
