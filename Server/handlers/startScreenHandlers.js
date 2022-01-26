@@ -57,7 +57,11 @@ module.exports = (io, socket, game) => {
       name: data.charName,
       xPos: 0,
       yPos: 0,
+      lastMove: new Date().getTime(),
+      fastPackets: 0,
     };
+
+    game.socketRoomMap[socket.id] = data.gameID;
 
     socket.emit("startScreen:charNameResponse", {
       gameState: game.roomGameStateMap[data.gameID],

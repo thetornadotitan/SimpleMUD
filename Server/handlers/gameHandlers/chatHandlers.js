@@ -28,18 +28,14 @@ module.exports = (io, socket, game) => {
       return;
     }
 
-    socket.rooms.forEach((room) => {
-      //don't emit to private room of sender
-      if (room === socket.id) return;
+    const sender = `${
+      game.roomGameStateMap[game.socketRoomMap[socket.id]].players[socket.id]
+        .name
+    } Said:`;
 
-      const sender = `${
-        game.roomGameStateMap[room].players[socket.id].name
-      } Said:`;
-
-      io.sockets.in(room).emit("newChatMessage", {
-        sender,
-        message: message,
-      });
+    io.sockets.in(game.socketRoomMap[socket.id]).emit("newChatMessage", {
+      sender,
+      message: message,
     });
   });
 };

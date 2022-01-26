@@ -1,67 +1,126 @@
 module.exports = (io, socket, game) => {
-  socket.on("moveUp", (gameID) => {
-    MovePlayer(gameID, "up");
-  });
-  socket.on("moveDown", (gameID) => {
-    MovePlayer(gameID, "down");
-  });
-  socket.on("moveLeft", (gameID) => {
-    MovePlayer(gameID, "left");
-  });
-  socket.on("moveRight", (gameID) => {
-    MovePlayer(gameID, "right");
+  socket.on("move", (data) => {
+    MovePlayer(data);
   });
 
-  const MovePlayer = (gameID, direction) => {
-    if (!ValidateMoveData(gameID)) return;
+  socket.on("disconnect", () => {
+    if (
+      game.socketRoomMap[socket.id] === null ||
+      game.socketRoomMap[socket.id] === undefined
+    )
+      return;
 
-    console.log(game.roomGameStateMap);
-    console.log(game.roomGameStateMap[gameID].players[socket.id]);
+    const gameRoom = game.roomGameStateMap[game.socketRoomMap[socket.id]];
 
-    let newPos = {
-      x: game.roomGameStateMap[gameID].players[socket.id].xPos,
-      y: game.roomGameStateMap[gameID].players[socket.id].yPos,
-    };
-    switch (direction) {
-      case "up":
-        newPos.y--;
-        break;
-      case "down":
-        newPos.y++;
-        break;
-      case "left":
-        newPos.x--;
-        break;
-      case "right":
-        newPos.x++;
-        break;
-      default:
-        break;
+    delete gameRoom.players[socket.id];
+    if (Object.entries(gameRoom.players).length === 0)
+      delete game.roomGameStateMap[game.socketRoomMap[socket.id]];
+    else {
+      io.sockets
+        .in(game.socketRoomMap[socket.id])
+        .emit(
+          "updatePlayerStates",
+          game.roomGameStateMap[game.socketRoomMap[socket.id]].players
+        );
+    }
+    delete game.socketRoomMap[socket.id];
+  });
+
+  const MovePlayer = (data) => {
+    const playerData =
+      game.roomGameStateMap[game.socketRoomMap[socket.id]].players[socket.id];
+    const currentTime = new Date().getTime();
+
+    //TODO: Packets that get stacked can cause this to trigger on a legit player. Should keep a count of violations and kick after a certain number of violaions.
+    if (currentTime - playerData.lastMove < 32) {
+      //client is sending packets faster than it should ignore extraneous packets
+      return;
     }
 
-    game.roomGameStateMap[gameID].players[socket.id].xPos = newPos.x;
-    game.roomGameStateMap[gameID].players[socket.id].yPos = newPos.y;
+    if (!ValidateMoveData(data)) return;
+
+    playerData.lastMove = currentTime;
+
+    let newPos = {
+      x: playerData.xPos,
+      y: playerData.yPos,
+    };
+
+    if (data.up) newPos.y--;
+    if (data.left) newPos.x--;
+    if (data.down) newPos.y++;
+    if (data.right) newPos.x++;
+
+    playerData.xPos = newPos.x;
+    playerData.yPos = newPos.y;
+
+    playerData.fastPackets = 0;
 
     //Send new game state
-    socket.rooms.forEach((room) => {
-      console.log(room);
-      //don't emit to private room of sender
-      if (room === socket.id) return;
-      console.log("I'm emitting movement");
-      io.sockets
-        .in(room)
-        .emit("updatePlayerStates", game.roomGameStateMap[gameID].players);
-    });
+    io.sockets
+      .in(game.socketRoomMap[socket.id])
+      .emit(
+        "updatePlayerStates",
+        game.roomGameStateMap[game.socketRoomMap[socket.id]].players
+      );
   };
 
-  const ValidateMoveData = (gameID) => {
-    //Validate Room ID is string
-    if ((typeof gameID === "string" || gameID instanceof String) === false) {
-      //not string, send error and escape
+  const ValidateMoveData = (data) => {
+    //Validate Data Object
+    if ((typeof data === "object" || data instanceof Object) === false) {
       socket.emit("newInfoMessage", {
         sender: "Server Error Catcher",
         message:
-          "Your movement command is invalid, Please use the most update version of the client. Disconnecting. Please refresh and try again",
+          "Your movement command is invalid, bad data. Please use the most update version of the client. Disconnecting. Please refresh and try again",
+      });
+      socket.disconnect();
+      return false;
+    }
+
+    //Validate movement Object variables
+    if (
+      (typeof data.up === "boolean" || data.up instanceof Boolean) === false
+    ) {
+      socket.emit("newInfoMessage", {
+        sender: "Server Error Catcher",
+        message:
+          "Your movement command is invalid, bad up. Please use the most update version of the client. Disconnecting. Please refresh and try again",
+      });
+      socket.disconnect();
+      return false;
+    }
+    if (
+      (typeof data.left === "boolean" ||
+        data.movement.left instanceof Boolean) === false
+    ) {
+      socket.emit("newInfoMessage", {
+        sender: "Server Error Catcher",
+        message:
+          "Your movement command is invalid, bad up. Please use the most update version of the client. Disconnecting. Please refresh and try again",
+      });
+      socket.disconnect();
+      return false;
+    }
+    if (
+      (typeof data.down === "boolean" ||
+        data.movement.down instanceof Boolean) === false
+    ) {
+      socket.emit("newInfoMessage", {
+        sender: "Server Error Catcher",
+        message:
+          "Your movement command is invalid, bad up. Please use the most update version of the client. Disconnecting. Please refresh and try again",
+      });
+      socket.disconnect();
+      return false;
+    }
+    if (
+      (typeof data.right === "boolean" ||
+        data.movement.right instanceof Boolean) === false
+    ) {
+      socket.emit("newInfoMessage", {
+        sender: "Server Error Catcher",
+        message:
+          "Your movement command is invalid, bad up. Please use the most update version of the client. Disconnecting. Please refresh and try again",
       });
       socket.disconnect();
       return false;
@@ -69,10 +128,14 @@ module.exports = (io, socket, game) => {
 
     //Make sure sent room exists
     if (
-      game.roomGameStateMap[gameID] === null ||
-      game.roomGameStateMap[gameID] === undefined ||
-      game.roomGameStateMap[gameID].players[socket.id] === null ||
-      game.roomGameStateMap[gameID].players[socket.id] === undefined
+      game.roomGameStateMap[game.socketRoomMap[socket.id]] === null ||
+      game.roomGameStateMap[game.socketRoomMap[socket.id]] === undefined ||
+      game.roomGameStateMap[game.socketRoomMap[socket.id]].players[
+        socket.id
+      ] === null ||
+      game.roomGameStateMap[game.socketRoomMap[socket.id]].players[
+        socket.id
+      ] === undefined
     ) {
       //not string, send error and escape
       socket.emit("newInfoMessage", {

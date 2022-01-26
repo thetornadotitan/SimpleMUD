@@ -13,20 +13,8 @@ const registerStartScreenHandlers = require("./handlers/startScreenHandlers");
 const game = require("./handlers/gameHandlers");
 
 io.on("connection", (socket) => {
-  socket.on("disconnect", () => {
-    // ...
-  });
-
   game.RegisterSocketEvents(io, socket);
   registerStartScreenHandlers(io, socket, game);
-});
-
-io.sockets.adapter.on("create-room", (room) => {
-  game.HandleRoomCreation(room);
-});
-
-io.sockets.adapter.on("delete-room", (room) => {
-  game.HandleRoomDeletion(room);
 });
 
 server.listen(3000);

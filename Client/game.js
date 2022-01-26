@@ -9,6 +9,14 @@ class Game {
 
   s = (p) => {
     let zoom = 32;
+    const timeBetweenMoves = 80;
+    const previousPositions = {};
+    const move = {
+      up: false,
+      left: false,
+      down: false,
+      right: false,
+    };
 
     p.setup = () => {
       p.createCanvas(
@@ -34,35 +42,120 @@ class Game {
         }
       }
 
-      p.fill(255);
+      p.fill(100, 255, 100);
       p.noStroke();
+      let playerInfo;
       for (const [key, value] of Object.entries(SocketIO.gameState.players)) {
-        console.log(value);
-        p.ellipse(
-          value.xPos * zoom + zoom / 2,
-          value.yPos * zoom + zoom / 2,
-          zoom
+        if (
+          previousPositions[key] === null ||
+          previousPositions[key] === undefined
+        ) {
+          previousPositions[key] = {};
+        }
+
+        if (key === SocketIO.socket.id) {
+          playerInfo = value;
+          continue;
+        }
+
+        animateEntity(
+          key,
+          previousPositions[key].x,
+          previousPositions[key].y,
+          value.xPos,
+          value.yPos,
+          p.deltaTime
         );
+      }
+
+      p.fill(255);
+      animateEntity(
+        SocketIO.socket.id,
+        previousPositions[SocketIO.socket.id].x,
+        previousPositions[SocketIO.socket.id].y,
+        playerInfo.xPos,
+        playerInfo.yPos,
+        p.deltaTime
+      );
+
+      if (previousPositions[SocketIO.socket.id].lastMoved >= timeBetweenMoves) {
+        let sendMove = false;
+
+        for (const [key, value] of Object.entries(move)) {
+          if (value) sendMove = true;
+        }
+
+        if (sendMove) {
+          SocketIO.playerHandler.SendMove(move);
+          previousPositions[SocketIO.socket.id] = {
+            x: playerInfo.xPos,
+            y: playerInfo.yPos,
+            lastMoved: 0,
+          };
+        }
       }
     };
 
+    const animateEntity = (key, px, py, x, y, dt) => {
+      if (px === undefined || py === undefined || py === null || px === null) {
+        drawEntity(key, x, y);
+        return;
+      }
+      previousPositions[key].lastMoved += dt;
+      const newPos = p.createVector(x, y);
+      const oldPos = p.createVector(px, py);
+      let amt = previousPositions[key].lastMoved / timeBetweenMoves;
+
+      if (amt >= 1) {
+        amt = 1;
+        if (key !== SocketIO.socket.id) {
+          previousPositions[key] = { x: x, y: y, lastMoved: 0 };
+        }
+      }
+      const animPos = p5.Vector.lerp(oldPos, newPos, amt);
+      p.ellipse(animPos.x * zoom + zoom / 2, animPos.y * zoom + zoom / 2, zoom);
+    };
+
+    const drawEntity = (key, x, y) => {
+      p.ellipse(x * zoom + zoom / 2, y * zoom + zoom / 2, zoom);
+      previousPositions[key] = { x: x, y: y, lastMoved: 0 };
+    };
+
     p.keyPressed = (event) => {
+      //Dont register movement while typing in chat and other windows
+      if (event.path[0].localName !== "body") return;
+
       switch (event.code) {
         case "KeyW":
-          console.log(event);
-          SocketIO.playerHandler.MoveUp(SocketIO.gameState.gameID);
+          move.up = true;
           break;
         case "KeyA":
-          console.log(event);
-          SocketIO.playerHandler.MoveLeft(SocketIO.gameState.gameID);
+          move.left = true;
           break;
         case "KeyS":
-          console.log(event);
-          SocketIO.playerHandler.MoveDown(SocketIO.gameState.gameID);
+          move.down = true;
           break;
         case "KeyD":
-          console.log(event);
-          SocketIO.playerHandler.MoveRight(SocketIO.gameState.gameID);
+          move.right = true;
+          break;
+        default:
+          break;
+      }
+    };
+
+    p.keyReleased = (event) => {
+      switch (event.code) {
+        case "KeyW":
+          move.up = false;
+          break;
+        case "KeyA":
+          move.left = false;
+          break;
+        case "KeyS":
+          move.down = false;
+          break;
+        case "KeyD":
+          move.right = false;
           break;
         default:
           break;

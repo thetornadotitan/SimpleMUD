@@ -214,6 +214,17 @@ class ChatHandlers {
     }
   }
 
+  ToggleMinimization() {
+    const body = document.querySelector("#game-chat-ui-body");
+    const input = document.querySelector("#game-chat-ui-inputs");
+    body.style.display === "none"
+      ? (body.style.display = "block")
+      : (body.style.display = "none");
+    input.style.display === "none"
+      ? (input.style.display = "flex")
+      : (input.style.display = "none");
+  }
+
   ValidString(checking, input, maxLength) {
     if ((typeof input === "string" || input instanceof String) === false) {
       window.alert(`${checking} is invalid, must be a string`);
